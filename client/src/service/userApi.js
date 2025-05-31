@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const axiosInstance = axios.create({
+export const axiosInstance = axios.create({
   baseURL: `${import.meta.env.VITE_BASE_URL}/api`,
   withCredentials: true, // Include credentials for CORS requests
 })
@@ -31,6 +31,24 @@ export const logoutUser = async () => {
     return response.data
   } catch (error) {
     console.error("Error logging out user:", error)
+    throw error
+  }
+}
+
+export const updateProfile = async (profileData) => {
+  try {
+    const response = await axiosInstance.put(
+      "/auth/update-profile",
+      profileData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // Ensure the request is sent as form data
+        },
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error("Error updating profile:", error)
     throw error
   }
 }

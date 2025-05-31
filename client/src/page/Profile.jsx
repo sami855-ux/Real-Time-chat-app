@@ -5,8 +5,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Link } from "react-router-dom"
-import { logoutUser } from "@/service/userApi"
+import { Link, useNavigate } from "react-router-dom"
+import { logoutUser, updateProfile } from "@/service/userApi"
 import toast from "react-hot-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -14,23 +14,31 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useForm } from "react-hook-form"
 import { useState } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { checkAuth, logout } from "@/store/auth"
+import avater from "@/assets/avater.png"
 
 export default function Profile() {
+  const { user } = useSelector((state) => state.auth)
   const [isEditing, setIsEditing] = useState(false)
-  const [previewImage, setPreviewImage] = useState("")
-  const { register, handleSubmit } = useForm({
+  const [isLoading, setIsLoading] = useState(false)
+  const [previewImage, setPreviewImage] = useState(user.profilePic || "")
+  const { register, handleSubmit, setValue } = useForm({
     defaultValues: {
-      fullName: "John Doe", // Replace with actual user data
-      email: "john@example.com", // Replace with actual user data
+      fullName: user.fullName || "fullName",
     },
   })
+
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const handleLogout = async () => {
     try {
       const res = await logoutUser()
       if (res.success) {
         toast.success("Logout successful!")
-        window.location.href = "/login"
+        dispatch(logout())
+        navigate("/login")
       } else {
         toast.error(res.message || "Logout failed. Please try again.")
       }
@@ -50,14 +58,45 @@ export default function Profile() {
         setPreviewImage(reader.result)
       }
       reader.readAsDataURL(file)
+
+      setValue("profilePic", file)
     }
   }
 
-  const onSubmit = (data) => {
-    console.log("Profile updated:", data)
-    // Add your profile update logic here
-    toast.success("Profile updated successfully!")
-    setIsEditing(false)
+  const onSubmit = async (data) => {
+    if (!data.profilePic) {
+      toast.error("Please select a profile picture.")
+      return
+    }
+
+    console.log(data)
+
+    const fromData = new FormData()
+    fromData.append("profilePic", data.profilePic)
+    fromData.append("fullName", data.fullName)
+
+    try {
+      setIsLoading(true)
+      const res = await updateProfile(fromData)
+
+      if (res.success) {
+        toast.success("Profile updated successfully!")
+        setPreviewImage(res.user.profilePic)
+        setValue("fullName", res.user.fullName)
+        dispatch(checkAuth())
+        setValue("profilePic", null)
+      } else {
+        toast.error(
+          res.data.message || "Failed to update profile. Please try again."
+        )
+      }
+    } catch (error) {
+      toast.error("Failed to update profile. Please try again.")
+      return
+    } finally {
+      setIsLoading(false)
+      setIsEditing(false)
+    }
   }
 
   return (
@@ -115,10 +154,10 @@ export default function Profile() {
         <main className="flex flex-col gap-6 p-8 pt-12 items-center max-w-2xl mx-auto">
           <div className="relative group">
             <Avatar className="w-32 h-32">
-              <AvatarImage
-                src={previewImage || "https://github.com/shadcn.png"}
-              />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarImage src={previewImage} />
+              <AvatarFallback>
+                <img src={avater} className="img-fluid rounded-circle" alt="" />
+              </AvatarFallback>
             </Avatar>
             {isEditing && (
               <label
@@ -152,12 +191,7 @@ export default function Profile() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    disabled
-                    {...register("email")}
-                  />
+                  <Input id="email" type="email" disabled value={user.email} />
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
@@ -168,13 +202,19 @@ export default function Profile() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Save Changes</Button>
+                {isLoading ? (
+                  <Button type="submit" disabled>
+                    Updating...
+                  </Button>
+                ) : (
+                  <Button type="submit">Save Changes</Button>
+                )}
               </div>
             </form>
           ) : (
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">John Doe</h2>
-              <p className="text-gray-600">john@example.com</p>
+              <h2 className="text-2xl font-bold">{user.fullName}</h2>
+              <p className="text-gray-600">{user.email}</p>
               <Button
                 variant="outline"
                 className="mt-4 gap-2"

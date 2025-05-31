@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { GithubIcon, Loader, Zap } from "lucide-react"
-import { Link } from "react-router-dom"
-import { GoogleIcon } from "./GoogleIcon"
+import { Link, useNavigate } from "react-router-dom"
+import { GoogleIcon } from "@/components/GoogleIcon"
 import { useForm } from "react-hook-form"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { loginUser } from "@/service/userApi"
 import toast from "react-hot-toast"
+import { useDispatch, useSelector } from "react-redux"
+import { checkAuth } from "@/store/auth"
 
 export default function Register() {
   const {
@@ -17,6 +19,9 @@ export default function Register() {
     formState: { errors },
   } = useForm({ mode: "onBlur" })
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { user, isAuthenticated } = useSelector((state) => state.auth)
 
   const onSubmit = async (data) => {
     try {
@@ -25,9 +30,10 @@ export default function Register() {
       const res = await loginUser(data)
 
       if (res.success) {
+        dispatch(checkAuth())
         toast.success("Login successful! Redirecting to home...")
         setTimeout(() => {
-          window.location.href = "/home"
+          navigate("/home")
         }, 1000)
 
         reset()
@@ -43,20 +49,17 @@ export default function Register() {
       setIsLoading(false)
     }
   }
-  return (
-    <div className="w-full max-h-screen ">
-      {/* Header */}
-      <header className="h-16 px-12 w-full bg-white border-b border-gray-200 flex gap-2 items-center">
-        <Zap
-          className="w-6 h-6 text-black animate-pulse"
-          fill="black"
-          strokeWidth={1.5}
-        />
-        <h1 className="text-2xl font-bold">Pulse </h1>
-      </header>
 
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate("/home")
+    }
+  }, [isAuthenticated, user, navigate])
+
+  return (
+    <div className="w-full h-screen ">
       {/* Main Content */}
-      <main className="flex items-center pt-8 h-[calc(100vh-64px)] flex-col gap-2 px-4">
+      <main className="flex items-center pt-20 h-screen flex-col gap-2 px-4">
         <h2 className="text-4xl font-semibold">Welcome back</h2>
         <h2 className="text-neutral-400 text-sm font-medium mt-1">
           Connect with friends in real-time.

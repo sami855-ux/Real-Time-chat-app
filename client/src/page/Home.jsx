@@ -7,15 +7,24 @@ import {
 } from "@/components/ui/tooltip"
 import toast from "react-hot-toast"
 import { logoutUser } from "@/service/userApi"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useDispatch } from "react-redux"
+import { checkAuth } from "@/store/auth"
+import ThemeToggle from "@/helper/ThemeToogler"
+import ChatInterface from "@/components/ChatInterface"
 
 export default function Home() {
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+
   const handleLogout = async () => {
     try {
       const res = await logoutUser()
       if (res.success) {
         toast.success("Logout successful!")
-        window.location.href = "/login"
+        navigate("/login")
+
+        dispatch(checkAuth())
       } else {
         toast.error(res.message || "Logout failed. Please try again.")
       }
@@ -40,6 +49,7 @@ export default function Home() {
             <h1 className="text-2xl font-bold">Pulse </h1>
           </Link>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             {/* Profile */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -79,14 +89,8 @@ export default function Home() {
           </div>
         </header>
 
-        <main className="flex min-h-[calc(100vh-64px)] flex-col gap-2 p-8 pt-4">
-          <div className="">
-            <h2 className="text-2xl font-bold">Connect in Real-Time</h2>
-            <p className="pt-1 text-sm text-gray-600">
-              Pulse delivers lightning-fast messaging with end-to-end
-              encryption.
-            </p>
-          </div>
+        <main className="w-full h-[calc(100vh-64px)] pt-4">
+          <ChatInterface />
         </main>
       </div>
     </TooltipProvider>
