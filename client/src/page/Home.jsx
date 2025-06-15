@@ -8,14 +8,17 @@ import {
 import toast from "react-hot-toast"
 import { logoutUser } from "@/service/userApi"
 import { Link, useNavigate } from "react-router-dom"
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { checkAuth } from "@/store/auth"
 import ThemeToggle from "@/helper/ThemeToogler"
 import ChatInterface from "@/components/ChatInterface"
+import { useEffect } from "react"
+import { fetchUsers } from "@/store/user"
 
 export default function Home() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const { users } = useSelector((state) => state.user)
 
   const handleLogout = async () => {
     try {
@@ -35,6 +38,10 @@ export default function Home() {
       )
     }
   }
+
+  useEffect(() => {
+    dispatch(fetchUsers())
+  }, [dispatch])
 
   return (
     <TooltipProvider>
