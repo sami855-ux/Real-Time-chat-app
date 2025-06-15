@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs"
 
 import User from "../models/user.model.js"
+import Message from "../models/message.model.js"
 import { generateToken } from "../lib/utils.js"
 import cloudinary from "../lib/cloudniary.js"
 
@@ -187,5 +188,41 @@ export const checkAuth = (req, res) => {
     return res
       .status(500)
       .json({ message: "Internal server error", success: false })
+  }
+}
+
+export const getUsers = async (req, res) => {
+  try {
+    const currentUserId = req.user._id
+
+    // Get all users except the current one
+    const users = await User.find({ _id: { $ne: currentUserId } }).select(
+      "-password"
+    )
+
+    // Get last messages between current user and others
+    const enrichedUsers = await Promise.all(
+      users.map(async (user) => {
+        const lastMessage = await Message.findOne({
+          $or: [
+            { senderId: currentUserId, receiverId: user._id },
+            { senderId: user._id, receiverId: currentUserId },
+          ],
+        })
+          .sort({ createdAt: -1 })
+          .limit(1)
+
+        return {
+          ...user.toObject(),
+          lastMessage: lastMessage?.text || "Say hi to start the conversation!",
+          updatedAt: lastMessage?.createdAt || user.updatedAt,
+        }
+      })
+    )
+
+    res.status(200).json({ users: enrichedUsers, success: true })
+  } catch (error) {
+    console.error("Error fetching users:", error.message)
+    res.status(500).json({ message: "Server error while fetching users." })
   }
 }
