@@ -434,7 +434,7 @@ export default function EmojiPicker({ onEmojiSelect, onClose }) {
       )}
 
       {/* Emoji Grid */}
-      <ScrollArea className="flex-1 p-2">
+      <ScrollArea className="flex-1 p-2 overflow-y-auto">
         <div className="grid grid-cols-8 gap-1">
           {filteredEmojis.map((emoji, index) => (
             <button
