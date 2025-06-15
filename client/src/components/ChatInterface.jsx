@@ -1,9 +1,6 @@
-"use client"
-
 import { useState, useRef, useEffect } from "react"
 import {
   Send,
-  Search,
   MoreVertical,
   Phone,
   Video,
@@ -11,19 +8,21 @@ import {
   Paperclip,
   Zap,
   Menu,
-  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import FilePreview from "./FilePreview"
 import EmojiPicker from "./EmojiPicker"
+import Sidebar from "./Sidebar"
+import { useDispatch, useSelector } from "react-redux"
+import { setSelectedUser } from "@/store/user"
 
 export default function ChatInterface() {
   const [selectedChat, setSelectedChat] = useState("1")
-  const [message, setMessage] = useState("")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [message, setMessage] = useState("")
+  // const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState([])
   const [showFilePreview, setShowFilePreview] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -31,6 +30,9 @@ export default function ChatInterface() {
   const messageInputRef = useRef(null)
   const emojiPickerRef = useRef(null)
   const emojiButtonRef = useRef(null)
+
+  const dispatch = useDispatch()
+  const { users, selectedUser } = useSelector((state) => state.user)
 
   const [messages, setMessages] = useState([
     {
@@ -264,15 +266,12 @@ export default function ChatInterface() {
     )
   }
 
-  const selectedChatData = chats.find((chat) => chat.id === selectedChat)
+  const selectedChatData = selectedUser
 
   const handleChatSelect = (chatId) => {
+    const user = users.find((user) => user?._id === chatId)
+    dispatch(setSelectedUser(user))
     setSelectedChat(chatId)
-    setIsSidebarOpen(false)
-  }
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
   }
 
   const renderMessageContent = (msg) => {
@@ -310,104 +309,18 @@ export default function ChatInterface() {
     )
   }
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen)
+  }
+
   return (
     <div className="flex w-full h-[87vh] relative overflow-hidden">
-      {/* Mobile Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar - Chat List - FIXED */}
-      <div
-        className={`
-      ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-      lg:translate-x-0 lg:relative fixed left-0 top-0 z-50
-      w-80 sm:w-96 lg:w-80 xl:w-96 h-full
-      border-r border-gray-200 bg-white flex flex-col
-      transition-transform duration-300 ease-in-out
-    `}
-      >
-        {/* Header - Fixed */}
-        <div className="p-4 border-b border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Chats</h2>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden"
-                onClick={() => setIsSidebarOpen(false)}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input placeholder="Search conversations..." className="pl-10" />
-          </div>
-        </div>
-
-        {/* Chat List - Independently Scrollable */}
-        <div className="flex-1 overflow-y-auto h-full">
-          <div className="p-2">
-            {chats.map((chat) => (
-              <div
-                key={chat.id}
-                onClick={() => handleChatSelect(chat.id)}
-                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                  selectedChat === chat.id
-                    ? "bg-blue-50 border border-blue-200"
-                    : "hover:bg-gray-50"
-                }`}
-              >
-                <div className="relative flex-shrink-0">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={chat.avatar || "/placeholder.svg"} />
-                    <AvatarFallback>
-                      {chat.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  {chat.isOnline && (
-                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-sm truncate">
-                      {chat.name}
-                    </h3>
-                    <span className="text-xs text-gray-500 flex-shrink-0">
-                      {chat.timestamp}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 truncate">
-                    {chat.lastMessage}
-                  </p>
-                </div>
-                {chat.unreadCount > 0 && (
-                  <Badge
-                    variant="default"
-                    className="bg-blue-500 text-white text-xs flex-shrink-0"
-                  >
-                    {chat.unreadCount}
-                  </Badge>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
+      <Sidebar
+        onChatSelect={handleChatSelect}
+        selectedChat={selectedChat}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      />
       {/* Main Chat Area - SCROLLABLE */}
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
         {selectedChat ? (
@@ -426,10 +339,10 @@ export default function ChatInterface() {
                 <div className="relative flex-shrink-0">
                   <Avatar className="w-10 h-10">
                     <AvatarImage
-                      src={selectedChatData?.avatar || "/placeholder.svg"}
+                      src={selectedChatData?.profilePic || "/placeholder.svg"}
                     />
                     <AvatarFallback>
-                      {selectedChatData?.name
+                      {selectedChatData?.fullName
                         .split(" ")
                         .map((n) => n[0])
                         .join("")}
@@ -441,7 +354,7 @@ export default function ChatInterface() {
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-medium truncate">
-                    {selectedChatData?.name}
+                    {selectedChatData?.fullName}
                   </h3>
                   <p className="text-sm text-gray-500 truncate">
                     {selectedChatData?.isOnline
