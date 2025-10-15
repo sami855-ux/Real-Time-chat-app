@@ -1,14 +1,24 @@
-import express from "express"
-import { protectRoute } from "../middleware/auth.middleware.js"
+import express from "express";
+import { protectRoute } from "../middleware/auth.middleware.js";
 import {
   getMessages,
-  getUserForSidebar,
+  getUserConversations,
   sendMessage,
-} from "../controller/message.controller.js"
+  getOrCreateConversation,
+} from "../controller/message.controller.js";
 
-const router = express.Router()
+const router = express.Router();
 
-router.get("/user", protectRoute, getUserForSidebar)
-router.get("/:id", protectRoute, getMessages)
-router.post("/sender/:id", protectRoute, sendMessage)
-export default router
+// Create or get a conversation between two users
+router.post("/:receiverId", protect, getOrCreateConversation);
+
+//send a message to user
+router.post("/sender/:id", protectRoute, sendMessage);
+
+// Get a message  from conversation
+router.get("/conversation/:conversationId", protectRoute, getMessages);
+
+// Get all users from conversation
+router.get("/conversation", protectRoute, getUserConversations);
+
+export default router;
