@@ -16,7 +16,7 @@ export default function Sidebar({
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredUsers = users?.filter((user) =>
-    user?.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+    user?.user?.fullName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatTime = (date) => {
@@ -89,11 +89,11 @@ export default function Sidebar({
                   <div
                     key={user?._id}
                     onClick={() => {
-                      onChatSelect(user?._id);
+                      onChatSelect(user?.conversationId, user?.user?._id);
                       setIsSidebarOpen(false);
                     }}
                     className={`flex items-center gap-3 p-3 rounded-md cursor-pointer transition-colors ${
-                      selectedChat === user?._id
+                      selectedChat === user?.conversationId
                         ? "bg-blue-100 border border-blue-300"
                         : "hover:bg-gray-50"
                     }`}
@@ -101,10 +101,10 @@ export default function Sidebar({
                     <div className="relative flex-shrink-0">
                       <Avatar className="w-12 h-12">
                         <AvatarImage
-                          src={user?.profilePic || "/placeholder.svg"}
+                          src={user?.user?.profilePic || "/placeholder.svg"}
                         />
-                        <AvatarFallback>
-                          {user.fullName
+                        <AvatarFallback className="uppercase bg-blue-600 text-white">
+                          {user?.user.fullName
                             .split(" ")
                             .map((n) => n[0])
                             .join("")}
@@ -117,14 +117,14 @@ export default function Sidebar({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium text-sm truncate capitalize">
-                          {user.fullName}
+                          {user?.user?.fullName}
                         </h3>
                         <span className="text-xs text-gray-500 flex-shrink-0">
-                          {formatTime(new Date(user.updatedAt))}
+                          {formatTime(new Date(user?.updatedAt))}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 truncate">
-                        {user?.lastMessage}
+                        {user?.lastMessage || "No messages yet"}
                       </p>
                     </div>
                     {2 > 0 && (

@@ -19,6 +19,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { setSelectedUser } from "@/store/user";
 
 export default function ChatInterface() {
+  // const {user}  = useSelector((state) => state.auth);
+
   const [selectedChat, setSelectedChat] = useState("1");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -268,10 +270,12 @@ export default function ChatInterface() {
 
   const selectedChatData = selectedUser;
 
-  const handleChatSelect = (userId) => {
-    const user = users.find((user) => user?._id === userId);
-    dispatch(setSelectedUser(user));
-    setSelectedChat(userId);
+  const handleChatSelect = (conversationId, userId) => {
+    const user = users.find((user) => user?.user?._id === userId);
+    dispatch(setSelectedUser(user.user));
+
+    console.log(user);
+    setSelectedChat(conversationId);
   };
 
   const renderMessageContent = (msg) => {
