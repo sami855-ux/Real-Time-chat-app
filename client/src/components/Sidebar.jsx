@@ -1,10 +1,10 @@
-import { useState } from "react"
-import { Button } from "./ui/button"
-import { Loader, MoreVertical, Search, X } from "lucide-react"
-import { Input } from "./ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
-import { Badge } from "./ui/badge"
-import { useSelector } from "react-redux"
+import { useState } from "react";
+import { Button } from "./ui/button";
+import { Loader, MoreVertical, Search, X } from "lucide-react";
+import { Input } from "./ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
+import { useSelector } from "react-redux";
 
 export default function Sidebar({
   onChatSelect,
@@ -12,20 +12,20 @@ export default function Sidebar({
   isSidebarOpen,
   setIsSidebarOpen,
 }) {
-  const { users, isLoading } = useSelector((store) => store.user)
-  const [searchTerm, setSearchTerm] = useState("")
+  const { users, isLoading } = useSelector((store) => store.user);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const filteredUsers = users?.filter((user) =>
     user?.fullName.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  );
 
   const formatTime = (date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
-    })
-  }
+    });
+  };
 
   return (
     <>
@@ -85,15 +85,15 @@ export default function Sidebar({
           <div className="flex-1 overflow-y-auto h-full">
             <div className="p-2">
               {filteredUsers?.length > 0 ? (
-                filteredUsers?.map((chat) => (
+                filteredUsers?.map((user) => (
                   <div
-                    key={chat?._id}
+                    key={user?._id}
                     onClick={() => {
-                      onChatSelect(chat?._id)
-                      setIsSidebarOpen(false)
+                      onChatSelect(user?._id);
+                      setIsSidebarOpen(false);
                     }}
                     className={`flex items-center gap-3 p-3 rounded-md cursor-pointer transition-colors ${
-                      selectedChat === chat?._id
+                      selectedChat === user?._id
                         ? "bg-blue-100 border border-blue-300"
                         : "hover:bg-gray-50"
                     }`}
@@ -101,30 +101,30 @@ export default function Sidebar({
                     <div className="relative flex-shrink-0">
                       <Avatar className="w-12 h-12">
                         <AvatarImage
-                          src={chat?.profilePic || "/placeholder.svg"}
+                          src={user?.profilePic || "/placeholder.svg"}
                         />
                         <AvatarFallback>
-                          {chat.fullName
+                          {user.fullName
                             .split(" ")
                             .map((n) => n[0])
                             .join("")}
                         </AvatarFallback>
                       </Avatar>
-                      {chat?.isOnline && (
+                      {user?.isOnline && (
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium text-sm truncate capitalize">
-                          {chat.fullName}
+                          {user.fullName}
                         </h3>
                         <span className="text-xs text-gray-500 flex-shrink-0">
-                          {formatTime(new Date(chat.updatedAt))}
+                          {formatTime(new Date(user.updatedAt))}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 truncate">
-                        {chat?.lastMessage}
+                        {user?.lastMessage}
                       </p>
                     </div>
                     {2 > 0 && (
@@ -160,5 +160,5 @@ export default function Sidebar({
         )}
       </div>
     </>
-  )
+  );
 }
