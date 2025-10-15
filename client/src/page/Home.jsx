@@ -1,47 +1,46 @@
-import { LogOut, Settings, User, Zap } from "lucide-react"
+import { LogOut, Settings, User, Zap } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
-import toast from "react-hot-toast"
-import { logoutUser } from "@/service/userApi"
-import { Link, useNavigate } from "react-router-dom"
-import { useDispatch, useSelector } from "react-redux"
-import { checkAuth } from "@/store/auth"
-import ThemeToggle from "@/helper/ThemeToogler"
-import ChatInterface from "@/components/ChatInterface"
-import { useEffect } from "react"
-import { fetchUsers } from "@/store/user"
+} from "@/components/ui/tooltip";
+import toast from "react-hot-toast";
+import { logoutUser } from "@/service/userApi";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { checkAuth } from "@/store/auth";
+import ThemeToggle from "@/helper/ThemeToogler";
+import ChatInterface from "@/components/ChatInterface";
+import { useEffect } from "react";
+import { fetchMessagedUsers } from "@/store/user";
 
 export default function Home() {
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
-  const { users } = useSelector((state) => state.user)
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleLogout = async () => {
     try {
-      const res = await logoutUser()
+      const res = await logoutUser();
       if (res.success) {
-        toast.success("Logout successful!")
-        navigate("/login")
+        toast.success("Logout successful!");
+        navigate("/login");
 
-        dispatch(checkAuth())
+        dispatch(checkAuth());
       } else {
-        toast.error(res.message || "Logout failed. Please try again.")
+        toast.error(res.message || "Logout failed. Please try again.");
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       toast.error(
         error.response?.data?.message || "Logout failed. Please try again."
-      )
+      );
     }
-  }
+  };
 
   useEffect(() => {
-    dispatch(fetchUsers())
-  }, [dispatch])
+    dispatch(fetchMessagedUsers());
+  }, [dispatch]);
 
   return (
     <TooltipProvider>
@@ -101,5 +100,5 @@ export default function Home() {
         </main>
       </div>
     </TooltipProvider>
-  )
+  );
 }
