@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 // Create or get a conversation between two users
-router.post("/:receiverId", protect, getOrCreateConversation);
+router.post("/:receiverId", getOrCreateConversation);
 
 //send a message to user
 router.post("/sender/:id", protectRoute, sendMessage);

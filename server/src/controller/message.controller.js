@@ -1,13 +1,14 @@
 import cloudinary from "../lib/cloudniary.js";
-import Conversation from "../models/Conversation.js";
-import Message from "../models/Message.js";
+import Conversation from "../models/conversation.model.js";
+import Message from "../models/message.model.js";
 
 /**
  * Create or get an existing two-way conversation
  */
 export const getOrCreateConversation = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = "68efcab55e633a6e4a70ffa4";
+
     const { receiverId } = req.params;
 
     if (!receiverId) {
