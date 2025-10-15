@@ -1,20 +1,16 @@
-import {
-  createBrowserRouter,
-  RouterProvider,
-  useNavigate,
-} from "react-router-dom"
-import Register from "./page/Register"
-import Login from "./page/Login"
-import { Toaster } from "react-hot-toast"
-import Home from "./page/Home"
-import Profile from "./page/Profile"
-import { useDispatch, useSelector } from "react-redux"
-import { useEffect } from "react"
-import { checkAuth } from "./store/auth"
-import { Loader2 } from "lucide-react"
-import ProtectRoute from "./helper/ProtectRoute"
-import { ThemeProvider } from "./helper/ThemeProvider"
-import Setting from "./page/Setting"
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Register from "./page/Register";
+import Login from "./page/Login";
+import { Toaster } from "react-hot-toast";
+import Home from "./page/Home";
+import Profile from "./page/Profile";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { checkAuth } from "./store/auth";
+import { Loader2 } from "lucide-react";
+import ProtectRoute from "./helper/ProtectRoute";
+import { ThemeProvider } from "./helper/ThemeProvider";
+import Setting from "./page/Setting";
 
 const router = createBrowserRouter([
   {
@@ -42,22 +38,22 @@ const router = createBrowserRouter([
     path: "/setting",
     element: <Setting />,
   },
-])
+]);
 
 function App() {
-  const { user, isLoading } = useSelector((state) => state.auth)
-  const dispatch = useDispatch()
+  const { user, isLoading } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(checkAuth())
-  }, [dispatch])
+    dispatch(checkAuth());
+  }, [dispatch]);
 
   if (isLoading && !user) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
       </div>
-    )
+    );
   }
 
   return (
@@ -82,7 +78,7 @@ function App() {
         }}
       />
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;
