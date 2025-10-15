@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect } from "react";
 import {
   Send,
   MoreVertical,
@@ -8,31 +8,31 @@ import {
   Paperclip,
   Zap,
   Menu,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import FilePreview from "./FilePreview"
-import EmojiPicker from "./EmojiPicker"
-import Sidebar from "./Sidebar"
-import { useDispatch, useSelector } from "react-redux"
-import { setSelectedUser } from "@/store/user"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import FilePreview from "./FilePreview";
+import EmojiPicker from "./EmojiPicker";
+import Sidebar from "./Sidebar";
+import { useDispatch, useSelector } from "react-redux";
+import { setSelectedUser } from "@/store/user";
 
 export default function ChatInterface() {
-  const [selectedChat, setSelectedChat] = useState("1")
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [message, setMessage] = useState("")
+  const [selectedChat, setSelectedChat] = useState("1");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [message, setMessage] = useState("");
   // const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [selectedFiles, setSelectedFiles] = useState([])
-  const [showFilePreview, setShowFilePreview] = useState(false)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const fileInputRef = useRef(null)
-  const messageInputRef = useRef(null)
-  const emojiPickerRef = useRef(null)
-  const emojiButtonRef = useRef(null)
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [showFilePreview, setShowFilePreview] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const fileInputRef = useRef(null);
+  const messageInputRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+  const emojiButtonRef = useRef(null);
 
-  const dispatch = useDispatch()
-  const { users, selectedUser } = useSelector((state) => state.user)
+  const dispatch = useDispatch();
+  const { users, selectedUser } = useSelector((state) => state.user);
 
   const [messages, setMessages] = useState([
     {
@@ -61,7 +61,7 @@ export default function ChatInterface() {
       sender: "user",
       timestamp: new Date(Date.now() - 1000 * 60 * 1),
     },
-  ])
+  ]);
 
   const [chats] = useState([
     {
@@ -160,9 +160,9 @@ export default function ChatInterface() {
       unreadCount: 0,
       isOnline: false,
     },
-  ])
+  ]);
 
-  const messagesEndRef = useRef(null)
+  const messagesEndRef = useRef(null);
 
   // Click outside to close emoji picker
   useEffect(() => {
@@ -174,23 +174,23 @@ export default function ChatInterface() {
         emojiButtonRef.current &&
         !emojiButtonRef.current.contains(event.target)
       ) {
-        setShowEmojiPicker(false)
+        setShowEmojiPicker(false);
       }
-    }
+    };
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [showEmojiPicker])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = () => {
     if ((message.trim() || selectedFiles.length > 0) && selectedChat) {
@@ -200,23 +200,23 @@ export default function ChatInterface() {
         sender: "user",
         timestamp: new Date(),
         files: selectedFiles.length > 0 ? [...selectedFiles] : undefined,
-      }
-      setMessages((prev) => [...prev, newMessage])
-      setMessage("")
-      setSelectedFiles([])
-      setShowFilePreview(false)
+      };
+      setMessages((prev) => [...prev, newMessage]);
+      setMessage("");
+      setSelectedFiles([]);
+      setShowFilePreview(false);
     }
-  }
+  };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
+      e.preventDefault();
+      handleSendMessage();
     }
-  }
+  };
 
   const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files)
+    const files = Array.from(e.target.files);
     if (files.length > 0) {
       const fileObjects = files.map((file) => ({
         file,
@@ -225,54 +225,54 @@ export default function ChatInterface() {
         size: file.size,
         type: file.type,
         url: URL.createObjectURL(file),
-      }))
-      setSelectedFiles(fileObjects)
-      setShowFilePreview(true)
+      }));
+      setSelectedFiles(fileObjects);
+      setShowFilePreview(true);
     }
-  }
+  };
 
   const handleEmojiSelect = (emoji) => {
-    const input = messageInputRef.current
+    const input = messageInputRef.current;
     if (input) {
-      const start = input.selectionStart
-      const end = input.selectionEnd
-      const newMessage = message.slice(0, start) + emoji + message.slice(end)
-      setMessage(newMessage)
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const newMessage = message.slice(0, start) + emoji + message.slice(end);
+      setMessage(newMessage);
 
       // Set cursor position after emoji
       setTimeout(() => {
-        input.selectionStart = input.selectionEnd = start + emoji.length
-        input.focus()
-      }, 0)
+        input.selectionStart = input.selectionEnd = start + emoji.length;
+        input.focus();
+      }, 0);
     }
-    setShowEmojiPicker(false)
-  }
+    setShowEmojiPicker(false);
+  };
 
   const formatTime = (date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
-    })
-  }
+    });
+  };
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
     return (
       Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-    )
-  }
+    );
+  };
 
-  const selectedChatData = selectedUser
+  const selectedChatData = selectedUser;
 
-  const handleChatSelect = (chatId) => {
-    const user = users.find((user) => user?._id === chatId)
-    dispatch(setSelectedUser(user))
-    setSelectedChat(chatId)
-  }
+  const handleChatSelect = (userId) => {
+    const user = users.find((user) => user?._id === userId);
+    dispatch(setSelectedUser(user));
+    setSelectedChat(userId);
+  };
 
   const renderMessageContent = (msg) => {
     return (
@@ -306,12 +306,12 @@ export default function ChatInterface() {
         )}
         {msg.text && <p className="text-sm break-words">{msg.text}</p>}
       </div>
-    )
-  }
+    );
+  };
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
-  }
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   return (
     <div className="flex w-full h-[87vh] relative overflow-hidden">
@@ -341,7 +341,7 @@ export default function ChatInterface() {
                     <AvatarImage
                       src={selectedChatData?.profilePic || "/placeholder.svg"}
                     />
-                    <AvatarFallback>
+                    <AvatarFallback className="uppercase">
                       {selectedChatData?.fullName
                         .split(" ")
                         .map((n) => n[0])
@@ -353,7 +353,7 @@ export default function ChatInterface() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-medium truncate">
+                  <h3 className="font-medium truncate capitalize">
                     {selectedChatData?.fullName}
                   </h3>
                   <p className="text-sm text-gray-500 truncate">
@@ -505,8 +505,8 @@ export default function ChatInterface() {
         <FilePreview
           files={selectedFiles}
           onClose={() => {
-            setShowFilePreview(false)
-            setSelectedFiles([])
+            setShowFilePreview(false);
+            setSelectedFiles([]);
           }}
           onSend={handleSendMessage}
           message={message}
@@ -514,5 +514,5 @@ export default function ChatInterface() {
         />
       )}
     </div>
-  )
+  );
 }
