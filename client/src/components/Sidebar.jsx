@@ -19,6 +19,8 @@ export default function Sidebar({
     user?.user?.fullName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  console.log(users);
+
   const formatTime = (date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -87,7 +89,7 @@ export default function Sidebar({
               {filteredUsers?.length > 0 ? (
                 filteredUsers?.map((user) => (
                   <div
-                    key={user?._id}
+                    key={user?.conversationId}
                     onClick={() => {
                       onChatSelect(user?.conversationId, user?.user?._id);
                       setIsSidebarOpen(false);
@@ -124,7 +126,8 @@ export default function Sidebar({
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 truncate">
-                        {user?.lastMessage || "No messages yet"}
+                        {/* {user?.lastMessage || "No messages yet"} */}
+                        No messages yet
                       </p>
                     </div>
                     {2 > 0 && (
