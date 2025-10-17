@@ -84,24 +84,70 @@ export const getUserConversations = async (req, res) => {
 /**
  * Send a new message (auto-creates conversation if not found)
  */
+// export const sendMessage = async (req, res) => {
+//   try {
+//     const senderId = req.user._id;
+//     const { text, image } = req.body;
+//     const { id: receiverId } = req.params;
+
+//     if (!receiverId || (!text && !image)) {
+//       return res.status(400).json({ message: "Invalid message data" });
+//     }
+
+//     let imageUrl;
+
+//     if (image) {
+//       const cloudResponse = await cloudinary.uploader.upload(image, {
+//         folder: "messages",
+//       });
+//       imageUrl = cloudResponse.secure_url;
+//     }
+
+//     // Find or create a conversation
+//     let conversation = await Conversation.findOne({
+//       $or: [
+//         { participant1: senderId, participant2: receiverId },
+//         { participant1: receiverId, participant2: senderId },
+//       ],
+//     });
+
+//     if (!conversation) {
+//       conversation = await Conversation.create({
+//         participant1: senderId,
+//         participant2: receiverId,
+//       });
+//     }
+
+//     // Create message
+//     const message = new Message({
+//       conversationId: conversation._id,
+//       senderId,
+//       receiverId,
+//       text,
+//       image: imageUrl,
+//     });
+//     await message.save();
+
+//     // Update conversation last message
+//     conversation.lastMessage = message._id;
+//     await conversation.save();
+
+//     res.status(201).json({
+//       data: message,
+//       message: "Message sent successfully",
+//       success: true,
+//     });
+//   } catch (error) {
+//     console.error("Error sending message:", error);
+//     res.status(500).json({ message: "Internal server error", success: false });
+//   }
+// };
+
 export const sendMessage = async (req, res) => {
   try {
-    const senderId = req.user._id;
-    const { text, image } = req.body;
+    const senderId = "68efcab55e633a6e4a70ffa4";
     const { id: receiverId } = req.params;
-
-    if (!receiverId || (!text && !image)) {
-      return res.status(400).json({ message: "Invalid message data" });
-    }
-
-    let imageUrl;
-
-    if (image) {
-      const cloudResponse = await cloudinary.uploader.upload(image, {
-        folder: "messages",
-      });
-      imageUrl = cloudResponse.secure_url;
-    }
+    const { text, image } = req.body;
 
     // Find or create a conversation
     let conversation = await Conversation.findOne({
@@ -124,8 +170,9 @@ export const sendMessage = async (req, res) => {
       senderId,
       receiverId,
       text,
-      image: imageUrl,
+      // image, // directly from body
     });
+
     await message.save();
 
     // Update conversation last message
@@ -142,7 +189,6 @@ export const sendMessage = async (req, res) => {
     res.status(500).json({ message: "Internal server error", success: false });
   }
 };
-
 /**
  * Get all messages in a conversation
  */

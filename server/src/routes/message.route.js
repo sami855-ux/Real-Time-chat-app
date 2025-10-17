@@ -13,10 +13,10 @@ const router = express.Router();
 router.post("/:receiverId", getOrCreateConversation);
 
 //send a message to user
-router.post("/sender/:id", protectRoute, sendMessage);
+router.post("/sender/:id", sendMessage);
 
 // Get a message  from conversation
-router.get("/conversation/:conversationId", protectRoute, getMessages);
+router.get("/conversation/:conversationId", getMessages);
 
 // Get all users from conversation
 router.get("/conversation", protectRoute, getUserConversations);
