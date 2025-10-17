@@ -17,12 +17,13 @@ import EmojiPicker from "./EmojiPicker";
 import Sidebar from "./Sidebar";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedUser } from "@/store/user";
+import ChatComponent from "./ChatSection";
 
 export default function ChatInterface() {
-  // const {user}  = useSelector((state) => state.auth);
-
-  const [selectedChat, setSelectedChat] = useState("1");
+  const [selectedChat, setSelectedChat] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  //For sending a message
   const [message, setMessage] = useState("");
   // const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -35,136 +36,6 @@ export default function ChatInterface() {
 
   const dispatch = useDispatch();
   const { users, selectedUser } = useSelector((state) => state.user);
-
-  const [messages, setMessages] = useState([
-    {
-      id: "1",
-      text: "Hey! How are you doing?",
-      sender: "other",
-      timestamp: new Date(Date.now() - 1000 * 60 * 5),
-      senderName: "Alice Johnson",
-    },
-    {
-      id: "2",
-      text: "I'm doing great! Just working on some new features for our app.",
-      sender: "user",
-      timestamp: new Date(Date.now() - 1000 * 60 * 3),
-    },
-    {
-      id: "3",
-      text: "That sounds exciting! Can't wait to see what you've built. The real-time messaging looks amazing!",
-      sender: "other",
-      timestamp: new Date(Date.now() - 1000 * 60 * 2),
-      senderName: "Alice Johnson",
-    },
-    {
-      id: "4",
-      text: "I'll show you a demo later today. The real-time features are working perfectly!",
-      sender: "user",
-      timestamp: new Date(Date.now() - 1000 * 60 * 1),
-    },
-  ]);
-
-  const [chats] = useState([
-    {
-      id: "1",
-      name: "Alice Johnson",
-      lastMessage: "That sounds exciting! Can't wait to see...",
-      timestamp: "2 min ago",
-      unreadCount: 2,
-      isOnline: true,
-    },
-    {
-      id: "2",
-      name: "Bob Smith",
-      lastMessage: "Thanks for the help with the project!",
-      timestamp: "1 hour ago",
-      unreadCount: 0,
-      isOnline: false,
-    },
-    {
-      id: "3",
-      name: "Team Chat",
-      lastMessage: "Meeting at 3 PM today",
-      timestamp: "3 hours ago",
-      unreadCount: 5,
-      isOnline: true,
-    },
-    {
-      id: "4",
-      name: "Sarah Wilson",
-      lastMessage: "Let's catch up soon!",
-      timestamp: "1 day ago",
-      unreadCount: 0,
-      isOnline: false,
-    },
-    {
-      id: "5",
-      name: "Development Team",
-      lastMessage: "New deployment is ready for testing",
-      timestamp: "2 days ago",
-      unreadCount: 1,
-      isOnline: true,
-    },
-    {
-      id: "6",
-      name: "Marketing Group",
-      lastMessage: "Campaign results are in!",
-      timestamp: "2 days ago",
-      unreadCount: 0,
-      isOnline: false,
-    },
-    {
-      id: "7",
-      name: "John Doe",
-      lastMessage: "Did you see the latest update?",
-      timestamp: "3 days ago",
-      unreadCount: 3,
-      isOnline: true,
-    },
-    {
-      id: "8",
-      name: "Emma Thompson",
-      lastMessage: "The design looks great!",
-      timestamp: "4 days ago",
-      unreadCount: 0,
-      isOnline: false,
-    },
-    {
-      id: "9",
-      name: "Michael Brown",
-      lastMessage: "Let's schedule a call next week",
-      timestamp: "5 days ago",
-      unreadCount: 0,
-      isOnline: false,
-    },
-    {
-      id: "10",
-      name: "Support Team",
-      lastMessage: "Issue #1234 has been resolved",
-      timestamp: "1 week ago",
-      unreadCount: 0,
-      isOnline: true,
-    },
-    {
-      id: "11",
-      name: "David Wilson",
-      lastMessage: "Thanks for your help!",
-      timestamp: "1 week ago",
-      unreadCount: 0,
-      isOnline: false,
-    },
-    {
-      id: "12",
-      name: "Sophia Garcia",
-      lastMessage: "The presentation went well",
-      timestamp: "2 weeks ago",
-      unreadCount: 0,
-      isOnline: false,
-    },
-  ]);
-
-  const messagesEndRef = useRef(null);
 
   // Click outside to close emoji picker
   useEffect(() => {
@@ -186,14 +57,6 @@ export default function ChatInterface() {
     };
   }, [showEmojiPicker]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   const handleSendMessage = () => {
     if ((message.trim() || selectedFiles.length > 0) && selectedChat) {
       const newMessage = {
@@ -203,7 +66,6 @@ export default function ChatInterface() {
         timestamp: new Date(),
         files: selectedFiles.length > 0 ? [...selectedFiles] : undefined,
       };
-      setMessages((prev) => [...prev, newMessage]);
       setMessage("");
       setSelectedFiles([]);
       setShowFilePreview(false);
@@ -250,14 +112,6 @@ export default function ChatInterface() {
     setShowEmojiPicker(false);
   };
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
-
   const formatFileSize = (bytes) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -270,47 +124,14 @@ export default function ChatInterface() {
 
   const selectedChatData = selectedUser;
 
+  //Fetch user messages based on selected chat conversationId => selectedChat
+
   const handleChatSelect = (conversationId, userId) => {
     const user = users.find((user) => user?.user?._id === userId);
     dispatch(setSelectedUser(user.user));
 
     console.log(user);
     setSelectedChat(conversationId);
-  };
-
-  const renderMessageContent = (msg) => {
-    return (
-      <div>
-        {msg.files && msg.files.length > 0 && (
-          <div className="mb-2">
-            {msg.files.map((fileObj) => (
-              <div key={fileObj.id} className="mb-2">
-                {fileObj.type.startsWith("image/") ? (
-                  <img
-                    src={fileObj.url || "/placeholder.svg"}
-                    alt={fileObj.name}
-                    className="max-w-full h-auto rounded-lg max-h-64 object-cover"
-                  />
-                ) : (
-                  <div className="bg-white bg-opacity-20 rounded-lg p-3 border">
-                    <div className="flex items-center gap-2">
-                      <Paperclip className="w-4 h-4" />
-                      <div>
-                        <p className="text-sm font-medium">{fileObj.name}</p>
-                        <p className="text-xs opacity-75">
-                          {formatFileSize(fileObj.size)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-        {msg.text && <p className="text-sm break-words">{msg.text}</p>}
-      </div>
-    );
   };
 
   const toggleSidebar = () => {
@@ -381,38 +202,65 @@ export default function ChatInterface() {
             </div>
 
             {/* Messages Area - SCROLLABLE */}
-            <div className="flex-1 overflow-y-auto p-2 sm:p-4">
+            {/* <div className="flex-1 overflow-y-auto p-2 sm:p-4">
               <div className="space-y-4">
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex ${
-                      msg.sender === "user" ? "justify-end" : "justify-start"
-                    }`}
-                  >
-                    <div
-                      className={`max-w-[85%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 rounded-lg ${
-                        msg.sender === "user"
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-100 text-gray-900"
-                      }`}
-                    >
-                      {renderMessageContent(msg)}
-                      <p
-                        className={`text-xs mt-1 ${
-                          msg.sender === "user"
-                            ? "text-blue-100"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {formatTime(msg.timestamp)}
-                      </p>
+                {loading && (
+                  <div className="flex justify-center">
+                    <div className="bg-gray-100 rounded-lg px-4 py-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0.1s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                        </div>
+                        <span className="text-gray-500 text-sm">
+                          Loading messages...
+                        </span>
+                      </div>
                     </div>
                   </div>
-                ))}
+                )}
+
+                {messages.messages.map((msg) => {
+                  const isSender = msg.senderId._id === user._id;
+
+                  return (
+                    <div
+                      key={msg._id}
+                      className={`flex ${
+                        isSender ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                      <div
+                        className={`max-w-[85%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 rounded-lg ${
+                          isSender
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100 text-gray-900"
+                        }`}
+                      >
+                        {renderMessageContent(msg)}
+                        <p
+                          className={`text-xs mt-1 ${
+                            isSender ? "text-blue-100" : "text-gray-500"
+                          }`}
+                        >
+                          {"now"}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </div>
-            </div>
+            </div> */}
+
+            <ChatComponent conversationId={selectedChat} />
 
             {/* Message Input - FIXED */}
             <div className="p-3 sm:p-4 border-t border-gray-200 bg-white flex-shrink-0 relative">
