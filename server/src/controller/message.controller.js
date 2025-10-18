@@ -145,7 +145,7 @@ export const getUserConversations = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const senderId = "68efcab55e633a6e4a70ffa4";
+    const senderId = "684ec07c0ec17b9e2a34f888";
     const { id: receiverId } = req.params;
     const { text, image } = req.body;
 
