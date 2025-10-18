@@ -1,12 +1,6 @@
 import { axiosInstance } from "@/service/userApi";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-// Async thunk to fetch users
-// export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
-//   const response = await axiosInstance.get("/auth/users");
-//   return response.data.users;
-// });
-
 export const fetchMessagedUsers = createAsyncThunk(
   "users/fetchMessagedUsers",
   async (_, { rejectWithValue }) => {
@@ -34,8 +28,19 @@ export const fetchMessagedUsers = createAsyncThunk(
   }
 );
 
+const loadSelectedUser = () => {
+  try {
+    const saved = localStorage.getItem("selectedUser");
+    console.log("Loaded selectedUser from localStorage:", saved);
+    return saved ? JSON.parse(saved) : null;
+  } catch (e) {
+    console.warn("Failed to load selectedUser from localStorage", e);
+    return null;
+  }
+};
+
 const initialState = {
-  selectedUser: null,
+  selectedUser: loadSelectedUser(),
   users: null,
   isLoading: false,
   error: null,
@@ -48,6 +53,13 @@ const userSlice = createSlice({
     setSelectedUser: (state, action) => {
       console.log(action.payload);
       state.selectedUser = action.payload;
+
+      // Persist to localStorage
+      try {
+        localStorage.setItem("selectedUser", JSON.stringify(action.payload));
+      } catch (e) {
+        console.warn("Failed to save selectedUser", e);
+      }
     },
   },
   extraReducers: (builder) => {
