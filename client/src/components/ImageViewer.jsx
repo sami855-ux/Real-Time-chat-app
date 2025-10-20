@@ -79,7 +79,7 @@ export function ImageViewer({ images, initialIndex = 0, isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 bg-black/95 border-0">
+      <DialogContent className="w-screen h-[90vh] max-w-none max-h-none p-0 bg-black/95 border-0 rounded-md">
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-6 bg-gradient-to-b from-black/80 to-transparent">
           <div className="flex items-center gap-4">
