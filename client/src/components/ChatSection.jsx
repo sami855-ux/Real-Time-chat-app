@@ -1,28 +1,22 @@
 import { useSelector } from "react-redux";
 import { useMessages } from "@/hook/GetMessages";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+
+import RenderMessageContent from "./RenderMessage.jsx";
+import { Check, CheckCheck } from "lucide-react";
 
 export default function ChatComponent({ conversationId }) {
   const { user } = useSelector((state) => state.auth);
   const { messages, setMessages, loading, refetch, isError } =
     useMessages(conversationId);
   const messagesEndRef = useRef(null);
-
-  const renderMessageContent = (msg) => {
-    return (
-      <div className="break-words">
-        {msg.text && <p className="text-sm leading-relaxed">{msg.text}</p>}
-      </div>
-    );
-  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -60,33 +54,7 @@ export default function ChatComponent({ conversationId }) {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-br from-amber-50/30 to-orange-50/20">
-      {/* Centered Loading Animation */}
-      {loading && (
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center space-y-4">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-amber-200 rounded-full animate-spin"></div>
-              <div className="absolute inset-0 m-auto w-16 h-16 border-4 border-transparent border-t-amber-500 rounded-full animate-spin"></div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-amber-700 font-medium">Loading messages...</p>
-              <div className="flex justify-center space-x-1">
-                <div className="w-2 h-2 bg-amber-400 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-amber-500 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-amber-600 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-br from-amber-50/30 to-orange-50/20 dark:from-gray-900 dark:to-gray-800">
       {/* Messages List */}
       {!loading && messages?.data?.length > 0 && (
         <div className="space-y-4">
@@ -111,22 +79,29 @@ export default function ChatComponent({ conversationId }) {
                     >
                       {/* Message Bubble */}
                       <div
-                        className={`relative px-4 py-3  transition-all duration-300 transform hover:scale-[1.02] ${
+                        className={`relative transition-all duration-300 transform hover:scale-[1.02] ${
                           isSender
-                            ? "bg-gradient-to-br from-amber-300 to-orange-400 text-white shadow-md rounded-l-2xl rounded-tr-2xl"
-                            : "bg-white text-gray-900 border border-amber-100 shadow-sm hover:shadow-md rounded-r-2xl rounded-tl-2xl"
-                        } animate-in fade-in-0 slide-in-from-bottom-2 duration-300`}
+                            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-md shadow-xs"
+                            : "bg-white text-gray-900 border border-gray-200 shadow-xs hover:shadow-sm rounded-2xl rounded-tl-md"
+                        } 
+                        ${
+                          msg.images && msg.images.length > 0
+                            ? "px-3 py-3"
+                            : "px-4 py-3"
+                        }
+                        
+                        animate-in fade-in-0 slide-in-from-bottom-2 duration-300`}
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
-                        {renderMessageContent(msg)}
+                        <RenderMessageContent msg={msg} />
 
                         {/* Message Time */}
                         <div
                           className={`flex items-center justify-end gap-2 mt-2 ${
-                            isSender ? "text-amber-100" : "text-gray-500"
+                            isSender ? "text-blue-100" : "text-gray-500"
                           }`}
                         >
-                          <span className="text-xs">
+                          <span className="text-xs font-mono">
                             {new Date(msg.createdAt).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
@@ -134,27 +109,25 @@ export default function ChatComponent({ conversationId }) {
                           </span>
 
                           {/* Read Receipt */}
-                          {isSender && (
-                            <div className="flex items-center">
-                              <div
-                                className={`w-3 h-3 rounded-full ${
-                                  msg.read ? "bg-blue-400" : "bg-amber-200"
-                                }`}
-                              />
-                            </div>
-                          )}
+                          <div className="flex items-center">
+                            {msg.isRead ? (
+                              <CheckCheck className="w-4 h-4 text-blue-100" />
+                            ) : (
+                              <Check className="w-4 h-4 text-blue-100/70" />
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </ContextMenuTrigger>
 
-                <ContextMenuContent className="w-48 bg-white/95 backdrop-blur-sm border-amber-200">
+                <ContextMenuContent className="w-48 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg dark:bg-gray-900/95 dark:border-gray-700">
                   {/* Actions available for both sender and receiver */}
                   {!isSender && (
                     <ContextMenuItem
                       onClick={() => handleMessageAction("reply", msg)}
-                      className="flex items-center gap-3 cursor-pointer focus:bg-amber-50"
+                      className="flex items-center gap-3 cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-800"
                     >
                       <svg
                         className="w-4 h-4"
@@ -175,7 +148,7 @@ export default function ChatComponent({ conversationId }) {
 
                   <ContextMenuItem
                     onClick={() => handleMessageAction("copy", msg)}
-                    className="flex items-center gap-3 cursor-pointer focus:bg-amber-50"
+                    className="flex items-center gap-3 cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-800"
                   >
                     <svg
                       className="w-4 h-4"
@@ -195,7 +168,7 @@ export default function ChatComponent({ conversationId }) {
 
                   <ContextMenuItem
                     onClick={() => handleMessageAction("forward", msg)}
-                    className="flex items-center gap-3 cursor-pointer focus:bg-amber-50"
+                    className="flex items-center gap-3 cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-800"
                   >
                     <svg
                       className="w-4 h-4"
@@ -215,7 +188,7 @@ export default function ChatComponent({ conversationId }) {
 
                   <ContextMenuItem
                     onClick={() => handleMessageAction("pin", msg)}
-                    className="flex items-center gap-3 cursor-pointer focus:bg-amber-50"
+                    className="flex items-center gap-3 cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-800"
                   >
                     <svg
                       className="w-4 h-4"
@@ -238,7 +211,7 @@ export default function ChatComponent({ conversationId }) {
                     <>
                       <ContextMenuItem
                         onClick={() => handleMessageAction("edit", msg)}
-                        className="flex items-center gap-3 cursor-pointer focus:bg-amber-50"
+                        className="flex items-center gap-3 cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-800"
                       >
                         <svg
                           className="w-4 h-4"
@@ -257,11 +230,11 @@ export default function ChatComponent({ conversationId }) {
                       </ContextMenuItem>
                     </>
                   )}
-                  <div className="border-t border-amber-100 my-1"></div>
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
 
                   <ContextMenuItem
                     onClick={() => handleMessageAction("delete", msg)}
-                    className="flex items-center gap-3 cursor-pointer focus:bg-red-50 text-red-600"
+                    className="flex items-center gap-3 cursor-pointer focus:bg-red-50 dark:focus:bg-red-900/20 text-red-600 dark:text-red-400"
                   >
                     <svg
                       className="w-4 h-4"
@@ -292,9 +265,9 @@ export default function ChatComponent({ conversationId }) {
           <div className="text-center space-y-6 max-w-md">
             {/* Animated Icon */}
             <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+              <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-200/50 shadow-xs dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-800/30">
                 <svg
-                  className="w-10 h-10 text-amber-500 animate-pulse"
+                  className="w-10 h-10 text-amber-500 animate-pulse dark:text-amber-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -307,8 +280,8 @@ export default function ChatComponent({ conversationId }) {
                   />
                 </svg>
               </div>
-              <div className="absolute -top-2 right-36">
-                <Badge className="bg-amber-500 text-white animate-bounce">
+              <div className="absolute -top-2 -right-2">
+                <Badge className="bg-amber-500 text-white animate-bounce shadow-xs">
                   New
                 </Badge>
               </div>
@@ -316,10 +289,10 @@ export default function ChatComponent({ conversationId }) {
 
             {/* Text Content */}
             <div className="space-y-3">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent dark:from-amber-400 dark:to-orange-400 font-geist tracking-tight">
                 Start the Conversation
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 leading-relaxed dark:text-gray-400 font-geist">
                 Send the first message to get things started! Ask a question,
                 share an idea, or just say hello.
               </p>

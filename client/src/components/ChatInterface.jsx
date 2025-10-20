@@ -16,12 +16,16 @@ import FilePreview from "./FilePreview";
 import EmojiPicker from "./EmojiPicker";
 import Sidebar from "./Sidebar";
 import { useDispatch, useSelector } from "react-redux";
-import { setSelectedUser } from "@/store/user";
+import { fetchMessagedUsers, setSelectedUser } from "@/store/user";
 import ChatComponent from "./ChatSection";
 import { setLocalStorageItem } from "@/lib/utils";
 import UserProfileDialog from "./UserDialog";
+import { sendMessage } from "@/service/messages";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ChatInterface() {
+  const queryClient = useQueryClient();
+
   const [selectedChat, setSelectedChat] = useState(() => {
     const saved = localStorage.getItem("selectedChat");
     return saved !== null ? JSON.parse(saved) : "";
@@ -33,12 +37,15 @@ export default function ChatInterface() {
   });
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
   //For sending a message
   const [message, setMessage] = useState("");
   // const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [showFilePreview, setShowFilePreview] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
   const fileInputRef = useRef(null);
   const messageInputRef = useRef(null);
   const emojiPickerRef = useRef(null);
@@ -71,18 +78,50 @@ export default function ChatInterface() {
     setSelectedChatData(selectedUser);
   }, [selectedUser]);
 
-  const handleSendMessage = () => {
-    if ((message.trim() || selectedFiles.length > 0) && selectedChat) {
-      const newMessage = {
-        id: Date.now().toString(),
-        text: message.trim(),
-        sender: "user",
-        timestamp: new Date(),
-        files: selectedFiles.length > 0 ? [...selectedFiles] : undefined,
-      };
-      setMessage("");
-      setSelectedFiles([]);
-      setShowFilePreview(false);
+  const handleSendMessage = async () => {
+    if ((!message.trim() && selectedFiles.length === 0) || !selectedChatData)
+      return;
+
+    setIsSending(true);
+
+    const formData = new FormData();
+
+    if (message.trim()) {
+      formData.append("text", message.trim());
+    }
+
+    console.log("Selected files to send:", selectedFiles);
+    // Append each image file
+    selectedFiles.forEach(({ file }) => {
+      formData.append("images", file);
+    });
+
+    console.log("Sending message with data:", formData);
+
+    try {
+      const res = await sendMessage(selectedChatData._id, formData);
+
+      if (res.success) {
+        // Message sent successfully
+
+        setMessage("");
+        setSelectedFiles([]);
+        setShowFilePreview(false);
+
+        // Invalidate and refetch messages for the selected conversation
+        queryClient.invalidateQueries(["messages", selectedChat]);
+
+        dispatch(fetchMessagedUser());
+      } else {
+        console.error(
+          "Failed to send message:",
+          res.message || "Unknown error"
+        );
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -155,7 +194,7 @@ export default function ChatInterface() {
 
   return (
     <>
-      <div className="flex w-full h-[87vh] relative overflow-hidden">
+      <div className="flex w-full h-full relative overflow-hidden">
         <Sidebar
           onChatSelect={handleChatSelect}
           selectedChat={selectedChat}
@@ -167,25 +206,25 @@ export default function ChatInterface() {
           {selectedChat ? (
             <>
               {/* Chat Header - FIXED */}
-              <div className="h-20 px-6 border-b border-amber-200/60 bg-gradient-to-r from-white to-amber-50/30 flex items-center justify-between backdrop-blur-sm flex-shrink-0 ">
+              <div className="h-20 px-6 border-b border-amber-200/40 bg-gradient-to-r from-background/50 via-background/40 to-amber-50/15 flex items-center justify-between backdrop-blur-lg flex-shrink-0 dark:bg-gradient-to-r dark:from-background/70 dark:via-background/50 dark:to-amber-950/5 dark:border-amber-800/20 shadow-lg shadow-amber-100/10 dark:shadow-amber-900/5 saturate-150">
                 <div className="flex items-center gap-4 min-w-0">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="lg:hidden flex-shrink-0 h-10 w-10 p-0 bg-white/80 hover:bg-amber-100/50 border border-amber-200/30 transition-all duration-200"
+                    className="lg:hidden flex-shrink-0 h-10 w-10 p-0 bg-background/80 hover:bg-amber-100/50 border border-amber-200/30 transition-all duration-200 dark:bg-background/80 dark:hover:bg-amber-900/50 dark:border-amber-800/30"
                     onClick={toggleSidebar}
                   >
-                    <Menu className="w-4 h-4 text-amber-600" />
+                    <Menu className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   </Button>
 
                   <div className="relative flex-shrink-0">
-                    <Avatar className="w-14 h-14 ring-2 ring-white shadow-lg">
+                    <Avatar className="w-14 h-14 ring-2 ring-background shadow-lg">
                       <AvatarImage
                         src={selectedChatData?.profilePic || "/placeholder.svg"}
                         className="object-cover cursor-pointer"
                         onClick={() => setIsProfileOpen(true)}
                       />
-                      <AvatarFallback className="uppercase bg-gradient-to-br from-amber-500 to-orange-500 text-white font-semibold text-sm">
+                      <AvatarFallback className="uppercase bg-gradient-to-br from-amber-500 to-orange-500 text-primary-foreground font-semibold text-sm dark:from-amber-600 dark:to-orange-600">
                         {selectedChatData?.fullName
                           .split(" ")
                           .map((n) => n[0])
@@ -193,18 +232,18 @@ export default function ChatInterface() {
                       </AvatarFallback>
                     </Avatar>
                     {selectedChatData?.isOnline ? (
-                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full shadow-sm animate-pulse"></div>
+                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full shadow-sm animate-pulse"></div>
                     ) : (
-                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-amber-400 border-2 border-white rounded-full shadow-sm"></div>
+                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-amber-400 border-2 border-background rounded-full shadow-sm dark:bg-amber-500"></div>
                     )}
                   </div>
 
                   <div className="min-w-0 space-y-1">
-                    <h3 className="font-bold text-gray-900 truncate capitalize text-lg font-sans">
+                    <h3 className="font-bold text-foreground truncate capitalize text-lg">
                       {selectedChatData?.fullName}
                     </h3>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm text-amber-600 font-medium truncate font-sans">
+                      <p className="text-sm text-amber-600 font-medium truncate dark:text-amber-400">
                         {selectedChatData?.isOnline
                           ? "Online now"
                           : "Last seen recently"}
@@ -217,23 +256,23 @@ export default function ChatInterface() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="hidden sm:flex h-10 w-10 p-0 bg-white/80 hover:bg-amber-100/50 border border-amber-200/30 transition-all duration-200 group"
+                    className="hidden sm:flex h-10 w-10 p-0 bg-background/80 hover:bg-amber-100/50 border border-amber-200/30 transition-all duration-200 group dark:bg-background/80 dark:hover:bg-amber-900/50 dark:border-amber-800/30"
                   >
-                    <Phone className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+                    <Phone className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform dark:text-amber-400" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="hidden sm:flex h-10 w-10 p-0 bg-white/80 hover:bg-amber-100/50 border border-amber-200/30 transition-all duration-200 group"
+                    className="hidden sm:flex h-10 w-10 p-0 bg-background/80 hover:bg-amber-100/50 border border-amber-200/30 transition-all duration-200 group dark:bg-background/80 dark:hover:bg-amber-900/50 dark:border-amber-800/30"
                   >
-                    <Video className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+                    <Video className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform dark:text-amber-400" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-10 w-10 p-0 bg-white/80 hover:bg-amber-100/50 border border-amber-200/30 transition-all duration-200 group"
+                    className="h-10 w-10 p-0 bg-background/80 hover:bg-amber-100/50 border border-amber-200/30 transition-all duration-200 group dark:bg-background/80 dark:hover:bg-amber-900/50 dark:border-amber-800/30"
                   >
-                    <MoreVertical className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+                    <MoreVertical className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform dark:text-amber-400" />
                   </Button>
                 </div>
               </div>
@@ -243,26 +282,27 @@ export default function ChatInterface() {
               <ChatComponent conversationId={selectedChat} />
 
               {/* Message Input - FIXED */}
-              <div className="p-3 sm:p-4 border-t border-gray-200 bg-white flex-shrink-0 relative">
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex-shrink-0"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Paperclip className="w-4 h-4" />
-                    </Button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      className="hidden"
-                      onChange={handleFileSelect}
-                      accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.zip,.rar"
-                    />
-                  </div>
+              <div className="p-6 border-t border-border/50 bg-background/95 backdrop-blur-sm flex-shrink-0 relative">
+                <div className="flex items-center gap-2 max-w-3xl mx-auto">
+                  {/* File Attachment */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 flex-shrink-0 hover:bg-accent rounded-lg transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Paperclip className="w-3.5 h-3.5 text-muted-foreground" />
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                    accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.zip,.rar"
+                  />
+
+                  {/* Message Input */}
                   <div className="flex-1 relative">
                     <Input
                       ref={messageInputRef}
@@ -270,41 +310,52 @@ export default function ChatInterface() {
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Type a message..."
-                      className="pr-12"
+                      className="h-9 rounded-lg border-border bg-background focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500 pr-8 text-sm font-geist placeholder:text-muted-foreground/60"
                     />
                     <Button
                       ref={emojiButtonRef}
                       variant="ghost"
-                      size="sm"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                      size="icon"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 hover:bg-accent rounded transition-colors"
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     >
-                      <Smile className="w-4 h-4" />
+                      <Smile className="w-3.5 h-3.5 text-muted-foreground" />
                     </Button>
                   </div>
+
+                  {/* Send Button */}
                   <Button
                     onClick={handleSendMessage}
-                    disabled={!message.trim() && selectedFiles.length === 0}
-                    className="bg-blue-500 hover:bg-blue-600 flex-shrink-0"
+                    disabled={
+                      isSending ||
+                      (!message.trim() && selectedFiles.length === 0)
+                    }
+                    className="h-9 px-3 flex-shrink-0 bg-black text-white hover:bg-gray-800 rounded-lg transition-all duration-200 font-geist text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-gray-400"
                     size="sm"
                   >
-                    <Send className="w-4 h-4" />
+                    {isSending ? (
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Sending</span>
+                      </div>
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )}
                   </Button>
                 </div>
 
-                {/* Emoji Picker - Positioned absolutely relative to the message input container */}
+                {/* Emoji Picker */}
                 {showEmojiPicker && (
                   <div
                     ref={emojiPickerRef}
                     className="absolute bottom-full right-4 mb-2 z-50"
-                    style={{
-                      transform: "translateY(-8px)",
-                    }}
                   >
-                    <EmojiPicker
-                      onEmojiSelect={handleEmojiSelect}
-                      onClose={() => setShowEmojiPicker(false)}
-                    />
+                    <div className="bg-popover border border-border rounded-lg shadow-xl">
+                      <EmojiPicker
+                        onEmojiSelect={handleEmojiSelect}
+                        onClose={() => setShowEmojiPicker(false)}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
