@@ -20,16 +20,6 @@ export default function Sidebar({
     user?.user?.fullName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  console.log(users);
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
-
   return (
     <>
       {isSidebarOpen && (
@@ -44,11 +34,11 @@ export default function Sidebar({
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0 lg:relative fixed left-0 top-0 z-50
           w-80 sm:w-96 lg:w-80 xl:w-96 h-full
-          border-r border-gray-200 bg-white flex flex-col
-          transition-transform duration-300 ease-in-out
+          border-r border-border flex flex-col
+          transition-transform duration-300 ease-in-out bg-background
         `}
       >
-        <div className="p-4 border-b border-gray-200 flex-shrink-0">
+        <div className="p-4 border-b border-accent flex-shrink-0">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Chats</h2>
             <div className="flex items-center gap-2">
@@ -69,7 +59,7 @@ export default function Sidebar({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               placeholder="Search conversations..."
-              className="pl-10 font-[13px"
+              className="pl-10 font-[13px]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -78,14 +68,16 @@ export default function Sidebar({
 
         {isLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8">
-            <div className="relative mb-4">
-              <div className="w-16 h-16 border-4 border-orange-200 rounded-full animate-spin"></div>
-              <Loader className="absolute inset-0 m-auto w-8 h-8 text-orange-500 animate-spin" />
+            <div className="relative mb-6">
+              <div className="w-20 h-20 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full animate-ping opacity-75"></div>
+              <div className="absolute inset-0 w-20 h-20 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full animate-pulse"></div>
             </div>
-            <p className="text-gray-600 font-medium">
-              Loading conversations...
+            <p className="text-gray-600 dark:text-gray-300 font-medium text-lg mb-2">
+              Loading conversations
             </p>
-            <p className="text-sm text-gray-500 mt-2">Please wait a moment</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">
+              Preparing your messages...
+            </p>
           </div>
         ) : (
           /* Conversations List */
@@ -100,23 +92,23 @@ export default function Sidebar({
                       setIsSidebarOpen(false);
                     }}
                     className={`
-                      group flex items-center gap-4 p-4 cursor-pointer transition-all duration-200
-                      rounded-xl mx-2 mb-2 border border-transparent
-                      ${
-                        selectedChat === user?.conversationId
-                          ? "bg-gradient-to-r from-orange-200 to-amber-200 border-orange-200 shadow-sm"
-                          : "hover:bg-gray-50/80 hover:border-gray-200/60"
-                      }
-                    `}
+            group flex items-center gap-4 p-4 cursor-pointer transition-all duration-200
+            rounded-md mx-2 mb-2 border
+            ${
+              selectedChat === user?.conversationId
+                ? "bg-accent border-border shadow-sm"
+                : "hover:bg-accent/50  hover:border-border/60 border-accent"
+            }
+          `}
                   >
                     {/* Avatar with Online Indicator */}
                     <div className="relative flex-shrink-0">
-                      <Avatar className="w-14 h-14 ring-2 ring-white shadow-sm group-hover:ring-orange-100 transition-all">
+                      <Avatar className="w-14 h-14 ring-2 ring-background shadow-sm group-hover:ring-accent transition-all">
                         <AvatarImage
                           src={user?.user?.profilePic || "/placeholder.svg"}
                           className="object-cover"
                         />
-                        <AvatarFallback className="uppercase bg-gradient-to-br from-orange-500 to-amber-500 text-white font-semibold text-sm">
+                        <AvatarFallback className="uppercase bg-primary text-primary-foreground font-semibold text-sm">
                           {user?.user.fullName
                             .split(" ")
                             .map((n) => n[0])
@@ -124,8 +116,10 @@ export default function Sidebar({
                         </AvatarFallback>
                       </Avatar>
                       <div
-                        className={`absolute bottom-0 right-0 w-3.5 h-3.5 border-2 border-white rounded-full ${
-                          user?.isOnline ? "bg-green-500" : "bg-gray-300"
+                        className={`absolute bottom-0 right-0 w-3.5 h-3.5 border-2 border-background rounded-full ${
+                          user?.isOnline
+                            ? "bg-green-500"
+                            : "bg-muted-foreground"
                         }`}
                       />
                     </div>
@@ -133,42 +127,44 @@ export default function Sidebar({
                     {/* Content */}
                     <div className="flex-1 min-w-0 space-y-0.5">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900 truncate capitalize text-sm">
+                        <h3 className="font-semibold text-foreground truncate capitalize text-sm">
                           {user?.user?.fullName}
                         </h3>
-                        <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                        <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
                           {timeElapsed(user?.updatedAt)}
                         </span>
                       </div>
-                      <p className="text-[13px] text-gray-600 truncate opacity-90">
-                        {"Start a conversation..."}
+                      <p className="text-[13px] text-muted-foreground truncate opacity-90">
+                        {user?.lastMessage?.images?.length > 0
+                          ? "📷 Photo shared"
+                          : user?.lastMessage?.text || "No messages yet"}
                       </p>
                     </div>
 
                     {/* Unread Badge */}
                     {2 > 0 && (
-                      <Badge className="flex-shrink-0 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-semibold px-2 py-1 min-w-[1.5rem] h-6 rounded-full shadow-sm">
+                      <Badge className="flex-shrink-0 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 min-w-[1.5rem] h-6 rounded-full shadow-sm">
                         {2}
                       </Badge>
                     )}
                   </div>
                 ))
               ) : (
-                /* Empty State */
+                /* Empty State - Vercel Inspired */
                 <div className="flex flex-col items-center justify-center h-[50vh] text-center p-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full flex items-center justify-center mb-4">
-                    <Search className="w-8 h-8 text-orange-400" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mb-4 border border-border/50">
+                    <Search className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  <h3 className="text-lg font-semibold text-foreground mb-2 font-geist">
                     {searchTerm ? "No matches found" : "No conversations yet"}
                   </h3>
-                  <p className="text-gray-500 text-sm max-w-xs">
+                  <p className="text-muted-foreground text-sm max-w-xs font-geist">
                     {searchTerm
                       ? "Try adjusting your search terms"
                       : "Start chatting with your contacts to see conversations here"}
                   </p>
                   {!searchTerm && (
-                    <Button className="mt-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-sm transition-all duration-200">
+                    <Button className="mt-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200 font-geist">
                       Start New Chat
                     </Button>
                   )}
