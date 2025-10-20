@@ -1,8 +1,6 @@
-"use client"
-import { X, Send, File, ImageIcon, Video, Music } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { X, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function FilePreview({
   files,
@@ -11,125 +9,81 @@ export default function FilePreview({
   message,
   onMessageChange,
 }) {
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes"
-    const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return (
-      Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-    )
-  }
-
-  const getFileIcon = (type) => {
-    if (type.startsWith("image/")) return <ImageIcon className="w-8 h-8" />
-    if (type.startsWith("video/")) return <Video className="w-8 h-8" />
-    if (type.startsWith("audio/")) return <Music className="w-8 h-8" />
-    return <File className="w-8 h-8" />
-  }
-
-  const isImage = (type) => type.startsWith("image/")
-  const isVideo = (type) => type.startsWith("video/")
+  // Only include image files
+  const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="text-lg font-semibold">
-            Send {files.length} {files.length === 1 ? "file" : "files"}
-          </h3>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="w-4 h-4" />
-          </Button>
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4 overflow-auto">
+      {/* Header with close button */}
+      <div className="absolute top-6 right-6 z-10">
+        <button
+          onClick={onClose}
+          className="text-white/80 hover:text-white bg-black/40 hover:bg-black/60 rounded-full p-3 transition-all duration-200 hover:scale-105 shadow-lg"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Image Grid with enhanced styling */}
+      <div className="w-full max-w-6xl mb-8">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-white mb-2">Preview Images</h2>
+          <p className="text-white/60">
+            {imageFiles.length} image{imageFiles.length !== 1 ? "s" : ""}{" "}
+            selected
+          </p>
         </div>
 
-        {/* File Preview Area */}
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {files.map((fileObj) => (
-              <div key={fileObj.id} className="border rounded-lg p-4">
-                <div className="flex items-start gap-4">
-                  {/* File Preview */}
-                  <div className="flex-shrink-0">
-                    {isImage(fileObj.type) ? (
-                      <img
-                        src={fileObj.url || "/placeholder.svg"}
-                        alt={fileObj.name}
-                        className="w-20 h-20 object-cover rounded-lg"
-                      />
-                    ) : isVideo(fileObj.type) ? (
-                      <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center relative">
-                        <Video className="w-8 h-8 text-gray-500" />
-                        <video
-                          src={fileObj.url}
-                          className="absolute inset-0 w-full h-full object-cover rounded-lg opacity-50"
-                          muted
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-                        {getFileIcon(fileObj.type)}
-                      </div>
-                    )}
-                  </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {imageFiles.map((fileObj) => (
+            <div
+              key={fileObj.id}
+              className="relative group aspect-square bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-all duration-300"
+            >
+              <img
+                src={fileObj.url || "/placeholder.svg"}
+                alt={fileObj.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              {/* Gradient overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                  {/* File Info */}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm truncate">
-                      {fileObj.name}
-                    </h4>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formatFileSize(fileObj.size)} •{" "}
-                      {fileObj.type.split("/")[1]?.toUpperCase() || "FILE"}
-                    </p>
-
-                    {/* Large Preview for Images */}
-                    {isImage(fileObj.type) && (
-                      <div className="mt-3">
-                        <img
-                          src={fileObj.url || "/placeholder.svg"}
-                          alt={fileObj.name}
-                          className="max-w-full h-auto rounded-lg max-h-64 object-contain"
-                        />
-                      </div>
-                    )}
-
-                    {/* Video Preview */}
-                    {isVideo(fileObj.type) && (
-                      <div className="mt-3">
-                        <video
-                          src={fileObj.url}
-                          controls
-                          className="max-w-full h-auto rounded-lg max-h-64"
-                        >
-                          Your browser does not support the video tag.
-                        </video>
-                      </div>
-                    )}
-                  </div>
-                </div>
+              {/* File name overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                <p className="text-white text-sm font-medium truncate">
+                  {fileObj.name}
+                </p>
               </div>
-            ))}
-          </div>
-        </ScrollArea>
+            </div>
+          ))}
+        </div>
+      </div>
 
-        {/* Caption Input */}
-        <div className="p-4 border-t">
+      {/* Caption + Send with enhanced styling */}
+      <div className="w-full max-w-2xl">
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-1 border border-white/20 shadow-2xl">
           <div className="flex items-center gap-2">
             <Input
               value={message}
               onChange={(e) => onMessageChange(e.target.value)}
-              placeholder="Add a caption..."
-              className="flex-1"
+              placeholder="Add a captivating caption..."
+              className="flex-1 border-0 bg-transparent text-white placeholder:text-white/60 focus:ring-0 text-lg py-6 px-4"
             />
-            <Button onClick={onSend} className="bg-blue-500 hover:bg-blue-600">
-              <Send className="w-4 h-4 mr-2" />
+            <Button
+              onClick={onSend}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-2 px-8 py-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+            >
+              <Send className="w-5 h-5" />
               Send
             </Button>
           </div>
         </div>
+
+        {/* Helper text */}
+        <p className="text-center text-white/40 text-sm mt-3">
+          Press Send to share these images with your caption
+        </p>
       </div>
     </div>
-  )
+  );
 }
