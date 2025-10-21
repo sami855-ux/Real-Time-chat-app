@@ -1,5 +1,5 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 const Input = React.forwardRef(({ className, type, ...props }, ref) => {
   return (
@@ -14,10 +14,10 @@ const Input = React.forwardRef(({ className, type, ...props }, ref) => {
       )}
       {...props}
     />
-  )
-})
+  );
+});
 
 // ✅ Required to avoid "Component is not a function" in dev tools and React internals
-Input.displayName = "Input"
+Input.displayName = "Input";
 
-export { Input }
+export { Input };
