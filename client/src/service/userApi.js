@@ -42,7 +42,7 @@ export const updateProfile = async (profileData) => {
       profileData,
       {
         headers: {
-          "Content-Type": "multipart/form-data", // Ensure the request is sent as form data
+          "Content-Type": "multipart/form-data",
         },
       }
     )
@@ -50,5 +50,23 @@ export const updateProfile = async (profileData) => {
   } catch (error) {
     console.error("Error updating profile:", error)
     throw error
+  }
+}
+
+export const getUser = async (searchQuery) => {
+  try {
+    const res = await axiosInstance.get(
+      `/auth/user/searched?search=${searchQuery}`
+    )
+
+    if (res.data.success) {
+      return res.data.users
+    } else {
+      return {}
+    }
+  } catch (error) {
+    console.log("Error fetching user by ID:", error)
+
+    return {}
   }
 }
