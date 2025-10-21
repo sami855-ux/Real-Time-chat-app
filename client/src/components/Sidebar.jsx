@@ -1,11 +1,14 @@
-import { useState } from "react";
-import { Button } from "./ui/button";
-import { Loader, MoreVertical, Search, X } from "lucide-react";
-import { Input } from "./ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
-import { useSelector } from "react-redux";
-import { timeElapsed } from "@/lib/utils";
+import { useState } from "react"
+import { Button } from "./ui/button"
+import { MoreVertical, Search, X } from "lucide-react"
+import { Input } from "./ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { Badge } from "./ui/badge"
+import { timeElapsed } from "@/lib/utils"
+import { useMessagedUsers } from "@/hook/useMessagedUsers"
+import toast from "react-hot-toast"
+import { makeMessagesRead } from "@/service/messages"
+import { useQueryClient } from "@tanstack/react-query"
 
 export default function Sidebar({
   onChatSelect,
@@ -13,13 +16,31 @@ export default function Sidebar({
   isSidebarOpen,
   setIsSidebarOpen,
 }) {
-  const { users, isLoading } = useSelector((store) => store.user);
-  const [searchTerm, setSearchTerm] = useState("");
+  const queryClient = useQueryClient()
+  const { users, isLoading } = useMessagedUsers()
+
+  const [searchTerm, setSearchTerm] = useState("")
+
+  console.log(users, isLoading)
 
   const filteredUsers = users?.filter((user) =>
     user?.user?.fullName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  )
 
+  const handleMessageRead = async (conversationId) => {
+    try {
+      const res = makeMessagesRead(conversationId)
+
+      if (res) {
+        toast.success("Messaged Fetched")
+
+        queryClient.invalidateQueries(["messages", conversationId])
+        queryClient.invalidateQueries(["messagedUsers"])
+      }
+    } catch (error) {
+      toast.error("Error")
+    }
+  }
   return (
     <>
       {isSidebarOpen && (
@@ -88,8 +109,9 @@ export default function Sidebar({
                   <div
                     key={user?.conversationId}
                     onClick={() => {
-                      onChatSelect(user?.conversationId, user?.user?._id);
-                      setIsSidebarOpen(false);
+                      onChatSelect(user?.conversationId, user?.user?._id)
+                      setIsSidebarOpen(false)
+                      handleMessageRead(user?.conversationId)
                     }}
                     className={`
             group flex items-center gap-4 p-4 cursor-pointer transition-all duration-200
@@ -142,9 +164,10 @@ export default function Sidebar({
                     </div>
 
                     {/* Unread Badge */}
-                    {2 > 0 && (
+                    {(user?.unreadCount && Number.parseInt(user?.unreadCount)) >
+                      0 && (
                       <Badge className="flex-shrink-0 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 min-w-[1.5rem] h-6 rounded-full shadow-sm">
-                        {2}
+                        {user?.unreadCount}
                       </Badge>
                     )}
                   </div>
@@ -175,5 +198,5 @@ export default function Sidebar({
         )}
       </div>
     </>
-  );
+  )
 }
