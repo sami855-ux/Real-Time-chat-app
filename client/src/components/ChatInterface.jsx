@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react"
 import {
   Send,
   MoreVertical,
@@ -8,51 +8,69 @@ import {
   Paperclip,
   Zap,
   Menu,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import FilePreview from "./FilePreview";
-import EmojiPicker from "./EmojiPicker";
-import Sidebar from "./Sidebar";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchMessagedUsers, setSelectedUser } from "@/store/user";
-import ChatComponent from "./ChatSection";
-import { setLocalStorageItem } from "@/lib/utils";
-import UserProfileDialog from "./UserDialog";
-import { sendMessage } from "@/service/messages";
-import { useQueryClient } from "@tanstack/react-query";
+  User,
+  VolumeX,
+  Archive,
+  Trash2,
+  Flag,
+} from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import FilePreview from "./FilePreview"
+import EmojiPicker from "./EmojiPicker"
+import Sidebar from "./Sidebar"
+import { useDispatch, useSelector } from "react-redux"
+import { setSelectedUser } from "@/store/user"
+import ChatComponent from "./ChatSection"
+import { setLocalStorageItem } from "@/lib/utils"
+import UserProfileDialog from "./UserDialog"
+import { sendMessage } from "@/service/messages"
+import { useQueryClient } from "@tanstack/react-query"
+import { setSelectedChatStore } from "@/store/message"
+import { useMessagedUsers } from "@/hook/useMessagedUsers"
 
 export default function ChatInterface() {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
   const [selectedChat, setSelectedChat] = useState(() => {
-    const saved = localStorage.getItem("selectedChat");
-    return saved !== null ? JSON.parse(saved) : "";
-  });
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const saved = localStorage.getItem("selectedChat")
+    return saved !== null ? JSON.parse(saved) : ""
+  })
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedChatData, setSelectedChatData] = useState(() => {
-    const saved = localStorage.getItem("selectedUser");
-    return saved ? JSON.parse(saved) : null;
-  });
+    const saved = localStorage.getItem("selectedUser")
+    return saved ? JSON.parse(saved) : null
+  })
 
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   //For sending a message
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState("")
   // const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [showFilePreview, setShowFilePreview] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [isSending, setIsSending] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([])
+  const [showFilePreview, setShowFilePreview] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [isSending, setIsSending] = useState(false)
 
-  const fileInputRef = useRef(null);
-  const messageInputRef = useRef(null);
-  const emojiPickerRef = useRef(null);
-  const emojiButtonRef = useRef(null);
+  const fileInputRef = useRef(null)
+  const messageInputRef = useRef(null)
+  const emojiPickerRef = useRef(null)
+  const emojiButtonRef = useRef(null)
 
-  const dispatch = useDispatch();
-  const { users, selectedUser } = useSelector((state) => state.user);
+  const dispatch = useDispatch()
+  const { selectedUser } = useSelector((state) => state.user)
+  const { users } = useMessagedUsers()
+  const { selectedChat: selectedChatFromStore } = useSelector(
+    (state) => state.message
+  )
 
   // Click outside to close emoji picker
   useEffect(() => {
@@ -64,76 +82,75 @@ export default function ChatInterface() {
         emojiButtonRef.current &&
         !emojiButtonRef.current.contains(event.target)
       ) {
-        setShowEmojiPicker(false);
+        setShowEmojiPicker(false)
       }
-    };
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showEmojiPicker]);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [showEmojiPicker])
 
   useEffect(() => {
-    setSelectedChatData(selectedUser);
-  }, [selectedUser]);
+    setSelectedChatData(selectedUser)
+  }, [selectedUser])
+
+  useEffect(() => {
+    setSelectedChat(selectedChatFromStore)
+  }, [selectedChatFromStore])
 
   const handleSendMessage = async () => {
     if ((!message.trim() && selectedFiles.length === 0) || !selectedChatData)
-      return;
+      return
 
-    setIsSending(true);
+    setIsSending(true)
 
-    const formData = new FormData();
+    const formData = new FormData()
 
     if (message.trim()) {
-      formData.append("text", message.trim());
+      formData.append("text", message.trim())
     }
 
-    console.log("Selected files to send:", selectedFiles);
     // Append each image file
     selectedFiles.forEach(({ file }) => {
-      formData.append("images", file);
-    });
+      formData.append("images", file)
+    })
 
-    console.log("Sending message with data:", formData);
+    console.log("Sending message with data:", formData)
 
     try {
-      const res = await sendMessage(selectedChatData._id, formData);
+      const res = await sendMessage(selectedChatData._id, formData)
 
       if (res.success) {
         // Message sent successfully
 
-        setMessage("");
-        setSelectedFiles([]);
-        setShowFilePreview(false);
+        setMessage("")
+        setSelectedFiles([])
+        setShowFilePreview(false)
 
         // Invalidate and refetch messages for the selected conversation
-        queryClient.invalidateQueries(["messages", selectedChat]);
-
-        dispatch(fetchMessagedUser());
+        queryClient.invalidateQueries(["messages", selectedChat])
+        queryClient.invalidateQueries(["messagedUsers"])
       } else {
-        console.error(
-          "Failed to send message:",
-          res.message || "Unknown error"
-        );
+        console.error("Failed to send message:", res.message || "Unknown error")
       }
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error sending message:", error)
     } finally {
-      setIsSending(false);
+      setIsSending(false)
     }
-  };
+  }
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+      e.preventDefault()
+      handleSendMessage()
     }
-  };
+  }
 
   const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files)
     if (files.length > 0) {
       const fileObjects = files.map((file) => ({
         file,
@@ -142,55 +159,43 @@ export default function ChatInterface() {
         size: file.size,
         type: file.type,
         url: URL.createObjectURL(file),
-      }));
-      setSelectedFiles(fileObjects);
-      setShowFilePreview(true);
+      }))
+      setSelectedFiles(fileObjects)
+      setShowFilePreview(true)
     }
-  };
+  }
 
   const handleEmojiSelect = (emoji) => {
-    const input = messageInputRef.current;
+    const input = messageInputRef.current
     if (input) {
-      const start = input.selectionStart;
-      const end = input.selectionEnd;
-      const newMessage = message.slice(0, start) + emoji + message.slice(end);
-      setMessage(newMessage);
+      const start = input.selectionStart
+      const end = input.selectionEnd
+      const newMessage = message.slice(0, start) + emoji + message.slice(end)
+      setMessage(newMessage)
 
       // Set cursor position after emoji
       setTimeout(() => {
-        input.selectionStart = input.selectionEnd = start + emoji.length;
-        input.focus();
-      }, 0);
+        input.selectionStart = input.selectionEnd = start + emoji.length
+        input.focus()
+      }, 0)
     }
-    setShowEmojiPicker(false);
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return (
-      Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
-    );
-  };
-
-  // const selectedChatData = selectedUser;
-
-  //Fetch user messages based on selected chat conversationId => selectedChat
+    setShowEmojiPicker(false)
+  }
 
   const handleChatSelect = (conversationId, userId) => {
-    const user = users.find((user) => user?.user?._id === userId);
-    setLocalStorageItem("selectedUser", user.user);
-    dispatch(setSelectedUser(user.user));
+    console.log(conversationId, userId)
+    const user = users.find((user) => user?.user?._id === userId)
+    setLocalStorageItem("selectedUser", user.user)
+    dispatch(setSelectedUser(user.user))
 
-    setSelectedChat(conversationId);
-    setLocalStorageItem("selectedChat", conversationId);
-  };
+    dispatch(setSelectedChatStore(conversationId))
+    // setSelectedChat(conversationId)
+    setLocalStorageItem("selectedChat", conversationId)
+  }
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+    setIsSidebarOpen(!isSidebarOpen)
+  }
 
   return (
     <>
@@ -267,13 +272,151 @@ export default function ChatInterface() {
                   >
                     <Video className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform dark:text-amber-400" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-10 w-10 p-0 bg-background/80 hover:bg-amber-100/50 border border-amber-200/30 transition-all duration-200 group dark:bg-background/80 dark:hover:bg-amber-900/50 dark:border-amber-800/30"
-                  >
-                    <MoreVertical className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform dark:text-amber-400" />
-                  </Button>
+
+                  {/* Three Dots Dropdown Menu */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="w-56 bg-white/95 backdrop-blur-sm border border-amber-200/50 rounded-xl shadow-lg dark:bg-gray-900/95 dark:border-amber-800/30"
+                      align="end"
+                      sideOffset={8} // pushes menu slightly away from button
+                      style={{ zIndex: 9999 }} // ensures it appears on top
+                    >
+                      {/* View Profile */}
+                      <DropdownMenuItem
+                        className="flex items-center gap-3 cursor-pointer focus:bg-amber-50 dark:focus:bg-amber-900/20"
+                        onClick={() => setIsProfileOpen(true)}
+                      >
+                        <User className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            View Profile
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            See contact details
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator className="bg-amber-100 dark:bg-amber-800/30" />
+
+                      {/* Media, Files & Links */}
+                      <DropdownMenuItem className="flex items-center gap-3 cursor-pointer focus:bg-amber-50 dark:focus:bg-amber-900/20">
+                        <svg
+                          className="w-4 h-4 text-amber-600 dark:text-amber-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            Media, Files & Links
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            View shared content
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+
+                      {/* Search in Conversation */}
+                      <DropdownMenuItem className="flex items-center gap-3 cursor-pointer focus:bg-amber-50 dark:focus:bg-amber-900/20">
+                        <svg
+                          className="w-4 h-4 text-amber-600 dark:text-amber-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            Search
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Find messages
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator className="bg-amber-100 dark:bg-amber-800/30" />
+
+                      {/* Mute Notifications */}
+                      <DropdownMenuItem className="flex items-center gap-3 cursor-pointer focus:bg-amber-50 dark:focus:bg-amber-900/20">
+                        <VolumeX className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            Mute Notifications
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Silence this chat
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+
+                      {/* Archive Chat */}
+                      <DropdownMenuItem className="flex items-center gap-3 cursor-pointer focus:bg-amber-50 dark:focus:bg-amber-900/20">
+                        <Archive className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            Archive Chat
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Hide from inbox
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator className="bg-amber-100 dark:bg-amber-800/30" />
+
+                      {/* Report */}
+                      <DropdownMenuItem className="flex items-center gap-3 cursor-pointer focus:bg-amber-50 dark:focus:bg-amber-900/20">
+                        <Flag className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            Report
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Report this contact
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem className="flex items-center gap-3 cursor-pointer focus:bg-red-50 dark:focus:bg-red-900/20 text-red-600 dark:text-red-400">
+                        <div>
+                          <p className="text-xs text-red-500 dark:text-red-400"></p>
+                        </div>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator className="bg-amber-100 dark:bg-amber-800/30" />
+
+                      {/* Delete Chat */}
+                      <DropdownMenuItem className="flex items-center gap-3 cursor-pointer focus:bg-red-50 dark:focus:bg-red-900/20 text-red-600 dark:text-red-400">
+                        <Trash2 className="w-4 h-4" />
+                        <div>
+                          <p className="text-sm font-medium">Delete Chat</p>
+                          <p className="text-xs text-red-500 dark:text-red-400">
+                            Permanently delete
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
@@ -388,8 +531,8 @@ export default function ChatInterface() {
           <FilePreview
             files={selectedFiles}
             onClose={() => {
-              setShowFilePreview(false);
-              setSelectedFiles([]);
+              setShowFilePreview(false)
+              setSelectedFiles([])
             }}
             onSend={handleSendMessage}
             message={message}
@@ -403,5 +546,5 @@ export default function ChatInterface() {
         user={selectedUser}
       />
     </>
-  );
+  )
 }
