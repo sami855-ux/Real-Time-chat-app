@@ -1,57 +1,56 @@
-import { useSelector } from "react-redux";
-import { useMessages } from "@/hook/GetMessages";
-import { useEffect, useRef } from "react";
+import { useSelector } from "react-redux"
+import { useMessages } from "@/hook/GetMessages"
+import { useEffect, useRef, useState } from "react"
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from "@/components/ui/context-menu";
-import { Badge } from "@/components/ui/badge";
+} from "@/components/ui/context-menu"
+import { Badge } from "@/components/ui/badge"
 
-import RenderMessageContent from "./RenderMessage.jsx";
-import { Check, CheckCheck } from "lucide-react";
+import RenderMessageContent from "./RenderMessage.jsx"
+import { Check, CheckCheck } from "lucide-react"
 
 export default function ChatComponent({ conversationId }) {
-  const { user } = useSelector((state) => state.auth);
-  const { messages, setMessages, loading, refetch, isError } =
-    useMessages(conversationId);
-  const messagesEndRef = useRef(null);
+  const { user } = useSelector((state) => state.auth)
+  const { messages, loading } = useMessages(conversationId)
+  const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
   const handleMessageAction = (action, message) => {
-    console.log(`${action} message:`, message);
+    console.log(`${action} message:`, message)
 
     switch (action) {
       case "reply":
         // Handle reply logic
-        break;
+        break
       case "copy":
-        navigator.clipboard.writeText(message.text);
-        break;
+        navigator.clipboard.writeText(message.text)
+        break
       case "delete":
         // Handle delete logic
-        break;
+        break
       case "forward":
         // Handle forward logic
-        break;
+        break
       case "edit":
         // Handle edit logic
-        break;
+        break
       case "pin":
         // Handle pin logic
-        break;
+        break
       default:
-        break;
+        break
     }
-  };
+  }
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    scrollToBottom()
+  }, [messages])
 
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-br from-amber-50/30 to-orange-50/20 dark:from-gray-900 dark:to-gray-800">
@@ -59,10 +58,7 @@ export default function ChatComponent({ conversationId }) {
       {!loading && messages?.data?.length > 0 && (
         <div className="space-y-4">
           {messages.data.map((msg, index) => {
-            const isSender = msg.senderId._id === user._id;
-            const showAvatar =
-              index === 0 ||
-              messages.data[index - 1]?.senderId._id !== msg.senderId._id;
+            const isSender = msg.senderId._id === user._id
 
             return (
               <ContextMenu key={msg._id}>
@@ -81,8 +77,8 @@ export default function ChatComponent({ conversationId }) {
                       <div
                         className={`relative transition-all duration-300 transform hover:scale-[1.02] ${
                           isSender
-                            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-md shadow-xs"
-                            : "bg-white text-gray-900 border border-gray-200 shadow-xs hover:shadow-sm rounded-2xl rounded-tl-md"
+                            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-l-lg rounded-tr-lg shadow-xs"
+                            : "bg-white text-gray-900 border border-gray-200 shadow-xs hover:shadow-sm rounded-r-lg rounded-tl-lg "
                         } 
                         ${
                           msg.images && msg.images.length > 0
@@ -253,7 +249,7 @@ export default function ChatComponent({ conversationId }) {
                   </ContextMenuItem>
                 </ContextMenuContent>
               </ContextMenu>
-            );
+            )
           })}
           <div ref={messagesEndRef} />
         </div>
@@ -289,10 +285,10 @@ export default function ChatComponent({ conversationId }) {
 
             {/* Text Content */}
             <div className="space-y-3">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent dark:from-amber-400 dark:to-orange-400 font-geist tracking-tight">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent dark:from-amber-400 dark:to-orange-400 tracking-tight">
                 Start the Conversation
               </h3>
-              <p className="text-gray-600 leading-relaxed dark:text-gray-400 font-geist">
+              <p className="text-gray-600 leading-relaxed dark:text-gray-400 font-jakarta">
                 Send the first message to get things started! Ask a question,
                 share an idea, or just say hello.
               </p>
@@ -301,5 +297,5 @@ export default function ChatComponent({ conversationId }) {
         </div>
       )}
     </div>
-  );
+  )
 }
