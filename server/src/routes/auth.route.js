@@ -6,6 +6,7 @@ import {
   updateProfile,
   checkAuth,
   getUsers,
+  getUser,
 } from "../controller/auth.controller.js"
 import { protectRoute } from "../middleware/auth.middleware.js"
 import upload from "../lib/multer.js"
@@ -28,5 +29,8 @@ router.put(
 router.get("/check", protectRoute, checkAuth)
 
 router.get("/users", protectRoute, getUsers)
+
+//Get a user based on id
+router.get("/user/searched", protectRoute, getUser)
 
 export default router
