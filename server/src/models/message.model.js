@@ -21,10 +21,11 @@ const messageSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    image: {
-      type: String,
-      default: "",
-    },
+    images: [
+      {
+        type: String, // URLs or file paths for uploaded images
+      },
+    ],
     isRead: {
       type: Boolean,
       default: false,
